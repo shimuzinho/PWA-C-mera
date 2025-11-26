@@ -1,23 +1,109 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PWA - Câmera</title>
-    <link rel="stylesheet" href="/css/style.css">
-    <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="/images/pwa-256.png">
-    <link rel="icon" href="/images/pwa-256.png" sizes="256x256">
-    <meta name="theme-color" content="white">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Câmera Popup</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 50px;
+    }
+
+    #cameraModal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.7);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    #cameraContent {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    video, canvas, img {
+      max-width: 100%;
+      border-radius: 10px;
+    }
+
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-    <main id="camera">
-        <canvas id="camera--sensor"></canvas>
-        <video id="camera--view" autoplay playsinline></video>
-        <img src="//:0" alt="" id="camera--output">
+
+  <button id="openCamera">Abrir Câmera</button>
+
+  <div id="cameraModal">
+    <div id="cameraContent">
+      <video id="camera--view" autoplay playsinline></video>
+      <canvas id="camera--sensor" style="display:none;"></canvas>
+      <img id="camera--output" alt="Sua foto" style="display:none;">
+      <div>
         <button id="camera--trigger">Tirar Foto</button>
-    </main>
-    <script src="js/main.js" type="module"></script>
+        <button id="closeCamera">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const openCameraBtn = document.getElementById('openCamera');
+    const cameraModal = document.getElementById('cameraModal');
+    const closeCameraBtn = document.getElementById('closeCamera');
+    const video = document.getElementById('camera--view');
+    const canvas = document.getElementById('camera--sensor');
+    const output = document.getElementById('camera--output');
+    const trigger = document.getElementById('camera--trigger');
+
+    let stream;
+
+    // Abrir popup da câmera
+    openCameraBtn.addEventListener('click', async () => {
+      cameraModal.style.display = 'flex';
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = stream;
+      } catch (err) {
+        console.error("Erro ao acessar a câmera:", err);
+        alert("Não foi possível acessar a câmera.");
+      }
+    });
+
+    // Fechar popup da câmera
+    closeCameraBtn.addEventListener('click', () => {
+      cameraModal.style.display = 'none';
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+      video.srcObject = null;
+      output.style.display = 'none';
+    });
+
+    // Tirar foto
+    trigger.addEventListener('click', () => {
+      const context = canvas.getContext('2d');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      output.src = canvas.toDataURL('image/png');
+      output.style.display = 'block';
+    });
+  </script>
+
 </body>
 </html>

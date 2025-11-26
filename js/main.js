@@ -39,3 +39,7 @@ cameraTrigger.onclick = function () {
 };
 
 window.addEventListener('load', cameraStart, false);
+
+const mostrarCamera = 
+
+document.querySelector('#mostrarCamera').addEventListener('click', mostrarCamera)
